@@ -1,0 +1,30 @@
+# Credentials — NEVER commit these
+credentials.json
+token.json
+.env
+*.key
+*.pem
+client_secret*.json
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Browser sessions
+.linkedin-session/
+.whatsapp-session/
+
+# MCP config (may contain paths)
+.mcp.json
+
+# Logs (large, not needed in repo)
+AI_Employee_Vault/Logs/
+
+# OS
+.DS_Store
+Thumbs.db
