@@ -299,6 +299,7 @@ def extract_post_text(approval_content: str) -> str:
 def post_to_linkedin(post_text: str) -> bool:
     """
     Use Playwright to post approved content to LinkedIn.
+    Uses robust multi-selector approach to handle LinkedIn UI changes.
     Returns True on success.
     """
     from playwright.sync_api import sync_playwright
@@ -309,62 +310,126 @@ def post_to_linkedin(post_text: str) -> bool:
         ctx = get_browser_context(p, headless=False)  # headed so you can verify
         try:
             page = ctx.pages[0] if ctx.pages else ctx.new_page()
-            page.goto(f"{LINKEDIN_URL}/feed/")
+            page.goto(f"{LINKEDIN_URL}/feed/", wait_until="domcontentloaded", timeout=30000)
+            page.wait_for_timeout(3000)
 
             if not is_logged_in(page):
                 logger.error("Not logged in. Run --login first.")
                 return False
 
-            # Click "Start a post"
-            page.wait_for_selector(
-                "button.share-box-feed-entry__trigger, "
-                "button[aria-label*='Start a post'], "
+            # ── Step 1: Click "Start a post" ─────────────────────────────
+            # Try multiple known selectors for LinkedIn's post button
+            start_btn = None
+            start_selectors = [
+                "button[aria-label*='Start a post']",
+                "button[aria-label*='Create a post']",
+                "div[data-placeholder*='Start a post']",
                 ".share-box-feed-entry__trigger",
-                timeout=10000,
-            )
-            start_btn = page.query_selector(
-                "button.share-box-feed-entry__trigger, "
-                "button[aria-label*='Start a post']"
-            )
+                "button.share-box-feed-entry__trigger",
+                "[data-control-name='share.sharebox_open']",
+                "div.share-box-feed-entry__top-bar button",
+            ]
+            for sel in start_selectors:
+                try:
+                    el = page.wait_for_selector(sel, timeout=4000)
+                    if el:
+                        start_btn = el
+                        logger.info(f"Found start-post button: {sel}")
+                        break
+                except Exception:
+                    continue
+
             if not start_btn:
-                logger.error("Could not find 'Start a post' button.")
+                # Take a debug screenshot to inspect the page
+                debug_path = VAULT_PATH / "Logs" / f"linkedin_debug_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+                page.screenshot(path=str(debug_path))
+                logger.error(f"Could not find 'Start a post' button. Debug screenshot: {debug_path.name}")
                 return False
+
             start_btn.click()
+            page.wait_for_timeout(2000)
+
+            # ── Step 2: Type into the post editor ────────────────────────
+            editor = None
+            editor_selectors = [
+                "div[role='textbox']",
+                ".ql-editor",
+                "div[contenteditable='true']",
+                ".share-creation-state__text-editor",
+                "[data-placeholder*='What do you want to talk about']",
+                "[data-placeholder*='Share your thoughts']",
+            ]
+            for sel in editor_selectors:
+                try:
+                    el = page.wait_for_selector(sel, timeout=4000)
+                    if el:
+                        editor = el
+                        logger.info(f"Found editor: {sel}")
+                        break
+                except Exception:
+                    continue
+
+            if not editor:
+                debug_path = VAULT_PATH / "Logs" / f"linkedin_debug_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+                page.screenshot(path=str(debug_path))
+                logger.error(f"Could not find post editor. Debug screenshot: {debug_path.name}")
+                return False
+
+            editor.click()
+            page.wait_for_timeout(500)
+            # Use keyboard typing for better compatibility
+            page.keyboard.type(post_text, delay=20)
             page.wait_for_timeout(1500)
 
-            # Type post content into the editor
-            editor = page.wait_for_selector(
-                ".ql-editor, div[role='textbox'][aria-label*='Post'], "
-                ".share-creation-state__text-editor",
-                timeout=8000,
-            )
-            editor.click()
-            editor.fill(post_text)
-            page.wait_for_timeout(1000)
+            # Draft screenshot for audit
+            draft_path = VAULT_PATH / "Logs" / f"linkedin_draft_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+            page.screenshot(path=str(draft_path))
+            logger.info(f"Draft screenshot saved: {draft_path.name}")
 
-            # Take screenshot before posting (for audit)
-            screenshot_path = VAULT_PATH / "Logs" / f"linkedin_draft_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
-            page.screenshot(path=str(screenshot_path), full_page=False)
-            logger.info(f"Draft screenshot saved: {screenshot_path.name}")
+            # ── Step 3: Click Post button ─────────────────────────────────
+            post_btn = None
+            post_selectors = [
+                "button[aria-label='Post']",
+                "button.share-actions__primary-action",
+                "button[aria-label*='Post now']",
+                "div.share-actions__primary-action button",
+                "button.artdeco-button--primary[type='submit']",
+                # Last resort: any primary button in the share modal
+                ".share-box-footer__primary-btn",
+            ]
+            for sel in post_selectors:
+                try:
+                    el = page.wait_for_selector(sel, timeout=4000)
+                    if el and el.is_enabled():
+                        post_btn = el
+                        logger.info(f"Found post button: {sel}")
+                        break
+                except Exception:
+                    continue
 
-            # Click Post button
-            post_btn = page.wait_for_selector(
-                "button.share-actions__primary-action, "
-                "button[aria-label*='Post now'], "
-                "button.artdeco-button--primary[type='button']",
-                timeout=8000,
-            )
+            if not post_btn:
+                debug_path = VAULT_PATH / "Logs" / f"linkedin_debug_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+                page.screenshot(path=str(debug_path))
+                logger.error(f"Could not find Post button. Debug screenshot: {debug_path.name}")
+                return False
+
             post_btn.click()
-            page.wait_for_timeout(3000)
+            page.wait_for_timeout(4000)
 
-            # Screenshot confirmation
+            # Confirmation screenshot
             confirm_path = VAULT_PATH / "Logs" / f"linkedin_posted_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
-            page.screenshot(path=str(confirm_path), full_page=False)
+            page.screenshot(path=str(confirm_path))
             logger.info(f"Post confirmation screenshot: {confirm_path.name}")
             return True
 
         except Exception as e:
             logger.error(f"LinkedIn post failed: {e}")
+            try:
+                debug_path = VAULT_PATH / "Logs" / f"linkedin_debug_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+                page.screenshot(path=str(debug_path))
+                logger.info(f"Debug screenshot: {debug_path.name}")
+            except Exception:
+                pass
             return False
         finally:
             ctx.close()

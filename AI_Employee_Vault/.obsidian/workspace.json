@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Inbox/EmailBatch_20260305_SUMMARY.md",
+                "file": "Done/POSTED_LinkedIn_20260310_002653.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "EmailBatch_20260305_SUMMARY"
+              "title": "POSTED_LinkedIn_20260310_002653"
             }
           }
         ]
@@ -186,11 +186,22 @@
   "active": "2e7e60414d968197",
   "lastOpenFiles": [
     "Workflow_Guide.md",
-    "Workflow_Guide.md.tmp.164672.1773080170673",
+    "Logs/debug_notifications.html",
+    "Logs/debug_notifications.png",
+    "Logs/debug_feed.png",
+    "Approved/APPROVAL_REQUIRED_LinkedIn_20260310_001800.md",
+    "Done/POSTED_LinkedIn_20260310_002653.md",
+    "Logs/linkedin_posted_20260310_002652.png",
+    "Logs/linkedin_draft_20260310_002644.png",
+    "Needs_Action/APPROVAL_REQUIRED_LinkedIn_20260310_001800.md",
+    "Needs_Action/APPROVAL_REQUIRED_LinkedIn_20260310_001800.md.tmp.164672.1773083989224",
+    "Company_Handbook.md",
+    "Dashboard.md",
     "Done/SENT_Email_20260305_120914.md",
+    "Inbox/EmailBatch_20260305_SUMMARY.md",
+    "Workflow_Guide.md.tmp.164672.1773080170673",
     "Needs_Action/APPROVAL_REQUIRED_Email_DevSumair_20260305.md",
     "Approved/APPROVAL_REQUIRED_Email_DevSumair_20260305.md",
-    "Inbox/EmailBatch_20260305_SUMMARY.md",
     "Done/ACTION_EMAIL_19cba433349d_20260305_001142.md",
     "Done/APPROVAL_REQUIRED_Payment_ClientA_20260304_113730.md",
     "Done/ACTION_EMAIL_19c9b4c35edf_20260305_000104.md",
@@ -206,20 +217,12 @@
     "Done/ACTION_EMAIL_19c70aa8e4bc_20260305_000105.md",
     "Done/ACTION_EMAIL_19c4223054e7_20260305_000105.md",
     "Done/ACTION_EMAIL_19c1b436ec3e_20260305_000106.md",
-    "Done/ACTION_EMAIL_19c1b435dbb8_20260305_000107.md",
-    "Done/ACTION_EMAIL_19c144e95a93_20260305_000107.md",
-    "Done/ACTION_EMAIL_19c10fe96e38_20260305_000108.md",
-    "Done/ACTION_EMAIL_19c10fe14766_20260305_000108.md",
-    "Done/ACTION_EMAIL_19c0edde8229_20260305_000109.md",
-    "Done/ACTION_EMAIL_19c0b736b0e6_20260305_000109.md",
     "Briefings",
     "Accounting",
     "Rejected",
     "Approved",
     "Pending_Approval",
     "Plans/Social",
-    "Plans/General",
-    "Plans/Finance",
-    "Plans/Communications"
+    "Plans/General"
   ]
 }
