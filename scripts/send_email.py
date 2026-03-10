@@ -99,10 +99,12 @@ def parse_approval_file(path: Path) -> dict | None:
         logger.error(f"Missing 'to' or 'subject' in {path.name}")
         return None
 
-    # Extract email body — between the --- divider and ## To APPROVE
+    # Extract email body — text between the last --- divider pair after frontmatter
+    # Strip frontmatter first, then find the --- ... --- block containing the body
+    after_frontmatter = content[fm_match.end():]
     body_match = re.search(
         r"---\n\n(.*?)\n\n---",
-        content,
+        after_frontmatter,
         re.DOTALL,
     )
     if not body_match:

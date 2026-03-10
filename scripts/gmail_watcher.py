@@ -48,7 +48,7 @@ SCOPES = [
 ]
 
 # Gmail search filter — tune here
-GMAIL_QUERY = "is:unread is:important"
+GMAIL_QUERY = "is:unread in:inbox"
 
 # Keywords that escalate urgency to High/Critical
 PRIORITY_KEYWORDS = {"urgent", "asap", "invoice", "payment", "deadline", "overdue", "important"}

@@ -1,0 +1,1 @@
+Payment request: Transfer 50 to vendor ABC for services rendered
