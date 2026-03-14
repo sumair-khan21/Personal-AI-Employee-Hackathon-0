@@ -207,8 +207,12 @@ def main():
         print(f"Error: {e}")
         sys.exit(1)
 
-    profile = service.users().getProfile(userId="me").execute()
-    logger.info(f"Gmail connected as: {profile['emailAddress']}")
+    try:
+        profile = service.users().getProfile(userId="me").execute()
+        logger.info(f"Gmail connected as: {profile['emailAddress']}")
+    except Exception as e:
+        logger.error(f"Gmail profile fetch failed: {e}")
+        sys.exit(1)
 
     if "--file" in args:
         idx  = args.index("--file")
@@ -222,7 +226,10 @@ def main():
         logger.info("Watching Approved/ for email approvals (interval=10s). Ctrl+C to stop.")
         try:
             while True:
-                scan_and_send(service)
+                try:
+                    scan_and_send(service)
+                except Exception as e:
+                    logger.error(f"Scan error: {e}")
                 time.sleep(10)
         except KeyboardInterrupt:
             logger.info("Stopped.")

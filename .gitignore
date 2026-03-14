@@ -18,6 +18,8 @@ build/
 # Browser sessions
 .linkedin-session/
 .whatsapp-session/
+.facebook-session/
+.instagram-session/
 
 # MCP config (may contain paths)
 .mcp.json

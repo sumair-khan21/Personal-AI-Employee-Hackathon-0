@@ -118,20 +118,31 @@ def scrape_notifications(page) -> list[dict]:
     Returns list of notification dicts.
     """
     try:
-        page.goto(f"{LINKEDIN_URL}/notifications/", timeout=15000)
-        page.wait_for_selector(".notification-item, .artdeco-list__item", timeout=10000)
+        page.goto(f"{LINKEDIN_URL}/notifications/", wait_until="domcontentloaded", timeout=30000)
+        page.wait_for_timeout(5000)
     except Exception as e:
-        logger.warning(f"Could not load notifications: {e}")
+        logger.warning(f"Could not load notifications page: {e}")
+        return []
+
+    # Try multiple selectors — LinkedIn changes these frequently
+    items = []
+    for sel in ["[data-urn]", "li.artdeco-list__item", "article", ".nt-card__content"]:
+        items = page.query_selector_all(sel)
+        if len(items) > 0:
+            logger.info(f"Notifications found with selector: {sel} ({len(items)} items)")
+            break
+
+    if not items:
+        logger.info("No notification elements found on page.")
         return []
 
     notifications = []
-    items = page.query_selector_all(".artdeco-list__item, .notification-item")
-    for item in items[:10]:  # process top 10 only
+    for item in items[:10]:
         try:
             text = item.inner_text().strip()
             link_el = item.query_selector("a")
             link = link_el.get_attribute("href") if link_el else ""
-            if text:
+            if text and len(text) > 5:
                 notifications.append({"text": text, "link": link or ""})
         except Exception:
             continue

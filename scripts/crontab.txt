@@ -1,5 +1,5 @@
 # ============================================================
-# AI Employee Vault — Scheduled Tasks (Silver Tier)
+# AI Employee Vault — Scheduled Tasks (Gold Tier)
 # ============================================================
 # Install with:
 #   (crontab -l 2>/dev/null; cat scripts/crontab.txt) | crontab -
@@ -18,7 +18,7 @@ LOG="$PROJECT/AI_Employee_Vault/Logs/cron.log"
 # ── Daily CEO Briefing — Mon–Fri at 8:00 AM ──────────────────
 0 8 * * 1-5 cd "$PROJECT" && $PYTHON scripts/run_briefing.py >> "$LOG" 2>&1
 
-# ── Gmail watcher — every 2 minutes (--once exits after one poll) ─
+# ── Gmail watcher — every 2 minutes ──────────────────────────
 */2 * * * * cd "$PROJECT" && $PYTHON scripts/gmail_watcher.py --once >> "$LOG" 2>&1
 
 # ── LinkedIn watcher — every 10 minutes ──────────────────────
@@ -27,5 +27,20 @@ LOG="$PROJECT/AI_Employee_Vault/Logs/cron.log"
 # ── LinkedIn auto-post — check Approved/ every 5 minutes ─────
 */5 * * * * cd "$PROJECT" && $PYTHON scripts/linkedin_watcher.py --post >> "$LOG" 2>&1
 
+# ── Facebook auto-post — check Approved/ every 5 minutes ─────
+*/5 * * * * cd "$PROJECT" && $PYTHON scripts/facebook_watcher.py --post >> "$LOG" 2>&1
+
+# ── Instagram auto-post — check Approved/ every 5 minutes ────
+*/5 * * * * cd "$PROJECT" && $PYTHON scripts/instagram_watcher.py --post >> "$LOG" 2>&1
+
+# ── WhatsApp watcher — every 5 minutes ───────────────────────
+*/5 * * * * cd "$PROJECT" && $PYTHON scripts/whatsapp_watcher.py --watch --once >> "$LOG" 2>&1
+
+# ── Odoo accounting audit — every hour ───────────────────────
+0 * * * * cd "$PROJECT" && $PYTHON scripts/odoo_watcher.py --once >> "$LOG" 2>&1
+
 # ── File system watcher — start on reboot (continuous loop) ──
 @reboot cd "$PROJECT" && $PYTHON scripts/filesystem_watcher.py >> "$LOG" 2>&1
+
+# ── Send email watcher — start on reboot (continuous loop) ───
+@reboot cd "$PROJECT" && $PYTHON scripts/send_email.py --watch >> "$LOG" 2>&1

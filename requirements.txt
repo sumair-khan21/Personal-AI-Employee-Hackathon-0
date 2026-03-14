@@ -12,6 +12,13 @@ google-auth-oauthlib>=1.2.0
 google-auth-httplib2>=0.2.0
 google-api-python-client>=2.120.0
 
-# Playwright Python package (browser automation for LinkedIn)
+# Playwright Python package (browser automation for LinkedIn/Facebook/Instagram)
 playwright>=1.58.0
 # After installing, run once: .venv/bin/playwright install chromium
+
+# ── Gold Tier ──────────────────────────────────────────────────
+# Job scheduler for orchestrator.py
+schedule>=1.2.0
+
+# Image generation for Instagram text-image fallback (facebook/instagram watchers)
+Pillow>=10.0.0

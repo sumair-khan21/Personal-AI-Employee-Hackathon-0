@@ -1,7 +1,7 @@
-# Personal AI Employee — Silver Tier
+# Personal AI Employee — Gold Tier
 
 > **Hackathon:** GIAIC Personal AI Employee Hackathon 0: Building Autonomous FTEs in 2026
-> **Tier:** Silver (Functional Assistant)
+> **Tier:** Gold (Autonomous Business Assistant)
 > **Tagline:** *Your life and business on autopilot. Local-first, agent-driven, human-in-the-loop.*
 > **Author:** Sumair Khan
 
@@ -9,49 +9,59 @@
 
 ## What Is This?
 
-A **Personal AI Employee** that runs 24/7 on your local machine. It monitors your Gmail inbox and LinkedIn, detects important messages, creates structured action files, drafts replies, and sends emails — all with your approval before any action is taken.
+A **Personal AI Employee** that runs 24/7 on your local machine. It monitors Gmail, LinkedIn, Facebook, Instagram, WhatsApp, and Odoo accounting — detects important signals, creates structured action files, drafts replies and social posts, tracks invoices, and executes approved actions — all with your sign-off before anything irreversible happens.
 
-Built with **Claude Code** as the reasoning engine and **Obsidian** as the local dashboard. No cloud required. Everything stays on your machine.
+Built with **Claude Code** as the reasoning engine, **Obsidian** as the local dashboard, **Playwright** for browser automation, and **Odoo Community** for accounting. No paid APIs. Everything stays on your machine.
 
 ---
 
 ## How It Works (Full Workflow)
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                   WATCHERS (Senses)                      │
-│  filesystem_watcher.py   gmail_watcher.py               │
-│  Monitors Drop_Zone/     Polls Gmail every 2min         │
-│         │                        │                       │
-│         └──────────┬─────────────┘                       │
-│                    ▼                                      │
-│         Creates ACTION_*.md in Needs_Action/             │
-└────────────────────┬────────────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────┐
-│                REASONING (Claude Code)                   │
-│  Reads Company_Handbook.md for rules                    │
-│  Reads Needs_Action/ for pending items                  │
-│  Thinks → Creates Plan.md → Routes actions              │
-└────────────────────┬────────────────────────────────────┘
-                     │
-          ┌──────────┴──────────┐
-          ▼                     ▼
-┌──────────────────┐  ┌────────────────────────────────┐
-│   SAFE ACTIONS   │  │    SENSITIVE ACTIONS (HITL)    │
-│  Archive to Done/│  │  Creates APPROVAL_REQUIRED_*.md│
-│  Write summaries │  │  Claude STOPS — waits for you  │
-│  Update dashboard│  │  You move to Approved/ → sent  │
-└──────────────────┘  └────────────────────────────────┘
-                                │
-                                ▼
-                     ┌──────────────────┐
-                     │  ACTION LAYER    │
-                     │  send_email.py   │
-                     │  Gmail API send  │
-                     │  LinkedIn post   │
-                     └──────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                    WATCHERS (Senses)                          │
+│  filesystem  gmail  linkedin  facebook  instagram             │
+│  whatsapp    odoo   send_email                                │
+│         │                                                     │
+│         └──────────────────┬──────────────────               │
+│                             ▼                                 │
+│              Creates ACTION_*.md in Needs_Action/             │
+└─────────────────────────────┬────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│                  ORCHESTRATOR (Brain)                         │
+│  orchestrator.py manages all watchers as subprocesses        │
+│  Ralph Wiggum loop: watchdog on Needs_Action/ + Done/        │
+│  Auto-restarts crashed watchers                              │
+└─────────────────────────────┬────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│               REASONING (Claude Code)                         │
+│  Reads Company_Handbook.md for rules                         │
+│  Reads Needs_Action/ for pending items                       │
+│  Thinks → Creates Plan.md → Routes actions                   │
+└─────────────────────────────┬────────────────────────────────┘
+                              │
+               ┌──────────────┴──────────────┐
+               ▼                             ▼
+┌──────────────────────┐    ┌─────────────────────────────────┐
+│    SAFE ACTIONS      │    │    SENSITIVE ACTIONS (HITL)     │
+│  Archive to Done/    │    │  Creates APPROVAL_REQUIRED_*.md │
+│  Write summaries     │    │  Claude STOPS — waits for you   │
+│  Update dashboard    │    │  Move to Approved/ → executes   │
+└──────────────────────┘    └─────────────────────────────────┘
+                                            │
+                                            ▼
+                              ┌─────────────────────────┐
+                              │      ACTION LAYER        │
+                              │  send_email.py (Gmail)   │
+                              │  linkedin_watcher --post │
+                              │  facebook_watcher --post │
+                              │  instagram_watcher --post│
+                              │  odoo_watcher (XML-RPC)  │
+                              └─────────────────────────┘
 ```
 
 ---
@@ -65,9 +75,9 @@ Personal AI Employee Hackathon 0/
 │   ├── Dashboard.md                   ← Live status dashboard
 │   ├── Company_Handbook.md            ← AI rules of engagement
 │   │
-│   ├── Drop_Zone/                     ← Drop any file here → watcher picks it up
+│   ├── Drop_Zone/                     ← Drop any file → watcher picks it up
 │   ├── Inbox/                         ← Processed files + email summaries
-│   ├── Needs_Action/                  ← ACTION_*.md files for Claude to process
+│   ├── Needs_Action/                  ← ACTION_*.md files to process
 │   ├── Done/                          ← Completed & archived items
 │   │
 │   ├── Plans/                         ← Claude-generated plan files
@@ -77,40 +87,53 @@ Personal AI Employee Hackathon 0/
 │   │   └── General/                   ← CEO Briefings land here
 │   │
 │   ├── Pending_Approval/              ← Approval requests (reference)
-│   ├── Approved/                      ← Move APPROVAL_REQUIRED files here to execute
+│   ├── Approved/                      ← Move APPROVAL_REQUIRED files here
 │   ├── Rejected/                      ← Rejected actions (audit trail)
-│   ├── Accounting/                    ← Financial records
+│   ├── Accounting/                    ← Odoo weekly audit reports
 │   ├── Briefings/                     ← Weekly CEO briefings
 │   └── Logs/
 │       ├── activity.log               ← All AI Employee activity
 │       ├── cron.log                   ← Scheduled job logs
-│       ├── gmail_processed.txt        ← Tracks processed email IDs
-│       └── processed_files.txt        ← Tracks processed Drop_Zone files
+│       ├── YYYY-MM-DD.json            ← Daily JSON audit trail
+│       └── orchestrator_status.json  ← Live orchestrator status
 │
 ├── scripts/
-│   ├── base_watcher.py                ← Abstract base class (all watchers extend this)
-│   ├── filesystem_watcher.py          ← Bronze: monitors Drop_Zone/ every 10s
+│   ├── base_watcher.py                ← Abstract base class
+│   ├── filesystem_watcher.py          ← Bronze: monitors Drop_Zone/
 │   ├── gmail_watcher.py               ← Silver: monitors Gmail every 2min
-│   ├── linkedin_watcher.py            ← Silver: LinkedIn watcher + auto-poster
-│   ├── send_email.py                  ← Silver: sends approved emails via Gmail API
-│   ├── run_briefing.py                ← Silver: generates Monday CEO briefing
+│   ├── linkedin_watcher.py            ← Silver: LinkedIn watcher + poster
+│   ├── send_email.py                  ← Silver: sends approved emails
+│   ├── run_briefing.py                ← Silver: Monday CEO briefing
+│   ├── facebook_watcher.py            ← Gold: Facebook poster via Playwright
+│   ├── instagram_watcher.py           ← Gold: Instagram poster via Playwright
+│   ├── whatsapp_watcher.py            ← Gold: WhatsApp message monitor
+│   ├── odoo_watcher.py                ← Gold: Odoo accounting via XML-RPC
+│   ├── orchestrator.py                ← Gold: master process manager
+│   ├── audit_logger.py                ← Gold: JSON audit trail
 │   ├── crontab.txt                    ← Cron schedule template
-│   └── verify.py                      ← Full setup verification (Bronze + Silver)
+│   └── verify.py                      ← Setup verification
+│
+├── docker/
+│   └── docker-compose.yml             ← Odoo 17 + PostgreSQL 15
 │
 ├── .claude/
 │   └── skills/                        ← Claude Code Agent Skills
-│       ├── process-vault/             ← Process Needs_Action/ items
-│       ├── gmail-watcher/             ← Gmail monitoring guide
-│       ├── linkedin-post/             ← LinkedIn draft → approve → post
-│       ├── create-plan/               ← Reasoning loop → Plan.md
-│       ├── hitl-approval/             ← HITL approval gatekeeper
-│       ├── schedule-tasks/            ← Cron setup guide
-│       ├── send-email/                ← Email send via Gmail API
-│       └── browsing-with-playwright/  ← Browser automation guide
+│       ├── process-vault/
+│       ├── gmail-watcher/
+│       ├── linkedin-post/
+│       ├── create-plan/
+│       ├── hitl-approval/
+│       ├── schedule-tasks/
+│       ├── send-email/
+│       └── browsing-with-playwright/
 │
 ├── credentials.json                   ← Google OAuth client (gitignored)
 ├── token.json                         ← Gmail auth token (gitignored)
+├── .env                               ← Odoo credentials (gitignored)
 ├── .linkedin-session/                 ← LinkedIn browser session (gitignored)
+├── .facebook-session/                 ← Facebook browser session (gitignored)
+├── .instagram-session/                ← Instagram browser session (gitignored)
+├── .whatsapp-session/                 ← WhatsApp browser session (gitignored)
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -125,6 +148,7 @@ Personal AI Employee Hackathon 0/
 | Python | 3.10+ | Watcher scripts |
 | Claude Code | Latest | AI reasoning engine |
 | Obsidian | v1.10.6+ (free) | Open `AI_Employee_Vault/` as vault |
+| Docker | Latest | Odoo Community (accounting) |
 | Google Cloud account | Free | Gmail API credentials |
 
 ---
@@ -151,73 +175,91 @@ python3 -m venv .venv
 .venv/bin/playwright install chromium
 ```
 
-### Step 4 — Run verification
+### Step 4 — Start Odoo (accounting)
+
+```bash
+cd docker && docker compose up -d && cd ..
+# Wait ~30 seconds, then open http://localhost:8069
+```
+
+### Step 5 — Run verification
 
 ```bash
 .venv/bin/python3 scripts/verify.py
 ```
 
-Expected output:
-```
-  ✓ Bronze Tier — COMPLETE
-  ✓ Silver Tier — COMPLETE
-```
-
 ---
 
-## Gmail Setup (One-time)
+## One-time Auth Setup
 
-### 1. Create Google Cloud credentials
-
-1. Go to [console.cloud.google.com](https://console.cloud.google.com)
-2. Create a new project
-3. Enable **Gmail API** → APIs & Services → Enable APIs → search "Gmail API"
-4. Create **OAuth 2.0 credentials** → Desktop app → Download as `credentials.json`
-5. Place `credentials.json` in project root
-6. Go to **OAuth consent screen** → Add your Gmail as a **Test user**
-
-### 2. Authenticate
+### Gmail
 
 ```bash
+# 1. Place credentials.json (Google OAuth) in project root
+# 2. Authenticate:
 .venv/bin/python3 scripts/gmail_watcher.py --auth
 ```
 
-A browser opens → sign in → grant all Gmail permissions → `token.json` saved automatically.
-
----
-
-## LinkedIn Setup (One-time)
+### LinkedIn
 
 ```bash
 .venv/bin/python3 scripts/linkedin_watcher.py --login
 ```
 
-A headed browser opens → log in to LinkedIn → close browser → session saved to `.linkedin-session/`.
+### Facebook
+
+```bash
+.venv/bin/python3 scripts/facebook_watcher.py --login
+```
+
+### Instagram
+
+```bash
+.venv/bin/python3 scripts/instagram_watcher.py --login
+```
+
+### WhatsApp
+
+```bash
+.venv/bin/python3 scripts/whatsapp_watcher.py --login
+# Scan the QR code with your phone
+```
+
+### Odoo
+
+Create `.env` in project root:
+```
+ODOO_URL=http://localhost:8069
+ODOO_DB=odoo
+ODOO_USERNAME=your@email.com
+ODOO_PASSWORD=your_password
+```
 
 ---
 
 ## Running the Application
 
-### Option A — Run each watcher manually
+### Option A — Master Orchestrator (Recommended)
+
+Runs all watchers automatically, restarts on crash, Ralph Wiggum loop active:
 
 ```bash
-# Terminal 1: File System Watcher (Bronze)
-.venv/bin/python3 scripts/filesystem_watcher.py
-
-# Terminal 2: Gmail Watcher (Silver) — continuous mode
-.venv/bin/python3 scripts/gmail_watcher.py
-
-# Terminal 3: LinkedIn Watcher (Silver)
-.venv/bin/python3 scripts/linkedin_watcher.py --watch
+.venv/bin/python3 scripts/orchestrator.py
 ```
 
-### Option B — Automate with cron (Recommended)
+### Option B — Individual watchers
 
 ```bash
-# Install all scheduled tasks at once
-(crontab -l 2>/dev/null; cat scripts/crontab.txt) | crontab -
+.venv/bin/python3 scripts/filesystem_watcher.py
+.venv/bin/python3 scripts/gmail_watcher.py
+.venv/bin/python3 scripts/linkedin_watcher.py --watch
+.venv/bin/python3 scripts/whatsapp_watcher.py --watch
+```
 
-# Verify cron is set
+### Option C — Cron (fully automated)
+
+```bash
+(crontab -l 2>/dev/null; cat scripts/crontab.txt) | crontab -
 crontab -l
 ```
 
@@ -226,84 +268,69 @@ Cron schedule:
 |-----|----------|
 | Gmail watcher | Every 2 minutes |
 | LinkedIn watcher | Every 10 minutes |
+| LinkedIn / Facebook / Instagram post | Every 5 minutes |
+| WhatsApp watcher | Every 5 minutes |
+| Odoo accounting audit | Every hour |
 | CEO Briefing | Mon–Fri at 8:00 AM |
-| LinkedIn auto-post | Every 5 minutes (checks Approved/) |
-| File system watcher | On system reboot |
+| Filesystem + send_email | On reboot (continuous) |
 
 ---
 
 ## Daily Workflow
 
-### 1. Files dropped into Drop_Zone/
+### 1. Drop a file
 
 ```bash
-# Drop any file — watcher detects it automatically
 cp invoice.pdf "AI_Employee_Vault/Drop_Zone/"
-
-# Check what was created
-ls "AI_Employee_Vault/Needs_Action/"
 ```
 
-### 2. Gmail emails detected
+### 2. Gmail detected — process it
 
 ```bash
-# Poll once manually
 .venv/bin/python3 scripts/gmail_watcher.py --once
-
-# Check action files created
-ls "AI_Employee_Vault/Needs_Action/ACTION_EMAIL_*.md"
 ```
 
-### 3. Ask Claude Code to process everything
+### 3. Ask Claude Code to reason
 
-Open Claude Code and say:
 ```
 Process pending vault items
 ```
 
-Claude reads all `ACTION_*.md` files, applies `Company_Handbook.md` rules, and routes each item.
+### 4. Review & approve actions
 
-### 4. Review approvals
+Open `Needs_Action/APPROVAL_REQUIRED_*.md` in Obsidian → move to `Approved/`
 
-```bash
-# See what needs your decision
-ls "AI_Employee_Vault/Needs_Action/APPROVAL_REQUIRED_*.md"
-```
-
-Open each file in Obsidian, review it, then:
-- **Approve** → move file to `Approved/`
-- **Reject** → delete the file
-
-### 5. Send approved emails
+### 5. Social media posts
 
 ```bash
-# Sends all files in Approved/ that are email approvals
-.venv/bin/python3 scripts/send_email.py
-
-# Or watch Approved/ continuously
-.venv/bin/python3 scripts/send_email.py --watch
-```
-
-### 6. Monday CEO Briefing
-
-```bash
-# Generate manually anytime
-.venv/bin/python3 scripts/run_briefing.py
-
-# Output: AI_Employee_Vault/Plans/General/Plan_CEOBriefing_<date>.md
-```
-
-### 7. Post to LinkedIn
-
-Tell Claude Code:
-```
-Draft a LinkedIn post about [your topic]
-```
-
-Claude creates `APPROVAL_REQUIRED_LinkedIn_*.md` → you review → move to `Approved/` → LinkedIn watcher posts it:
-
-```bash
+# LinkedIn
 .venv/bin/python3 scripts/linkedin_watcher.py --post
+
+# Facebook
+.venv/bin/python3 scripts/facebook_watcher.py --post
+
+# Instagram
+.venv/bin/python3 scripts/instagram_watcher.py --post
+```
+
+### 6. Odoo accounting check
+
+```bash
+.venv/bin/python3 scripts/odoo_watcher.py --once
+# Creates WeeklyAudit_*.md in Accounting/ and ACTION_ODOO_*.md in Needs_Action/
+```
+
+### 7. WhatsApp monitoring
+
+```bash
+.venv/bin/python3 scripts/whatsapp_watcher.py --watch --once
+# Creates ACTION_WHATSAPP_*.md for messages with urgent/payment keywords
+```
+
+### 8. Monday CEO Briefing
+
+```bash
+.venv/bin/python3 scripts/run_briefing.py
 ```
 
 ---
@@ -313,19 +340,20 @@ Claude creates `APPROVAL_REQUIRED_LinkedIn_*.md` → you review → move to `App
 | Say this to Claude | What happens |
 |--------------------|-------------|
 | `Process pending vault items` | Reads & routes all Needs_Action/ items |
-| `Create a plan for [topic]` | Reasoning loop → Plan.md created |
-| `Draft a LinkedIn post about [topic]` | Creates approval file for LinkedIn |
-| `Draft a reply to [email]` | Creates approval file for email reply |
+| `Create a plan for [topic]` | Reasoning loop → Plan.md |
+| `Draft a LinkedIn post about [topic]` | Creates LinkedIn approval file |
+| `Draft a Facebook post about [topic]` | Creates Facebook approval file |
+| `Draft an Instagram post about [topic]` | Creates Instagram approval file |
+| `Draft a reply to [email]` | Creates email approval file |
 | `What approvals are waiting?` | Lists all APPROVAL_REQUIRED files |
-| `Start Gmail watcher` | Guides Gmail setup & monitoring |
-| `Schedule [task] at [time]` | Sets up cron job |
 | `Monday morning briefing` | Generates CEO briefing |
+| `Schedule [task] at [time]` | Sets up cron job |
 
 ---
 
 ## Human-in-the-Loop (HITL) Approval Flow
 
-Claude **never** takes sensitive actions without your explicit sign-off:
+Claude **never** takes sensitive actions without your sign-off:
 
 ```
 Claude detects sensitive action needed
@@ -340,12 +368,12 @@ You open the file in Obsidian and review
         YES → move to Approved/
         NO  → delete the file
             ↓
-Claude/script executes and logs to Done/
+Script executes and logs to Done/
 ```
 
 Actions that always require approval:
 - Sending any email
-- Posting to LinkedIn
+- Posting to LinkedIn / Facebook / Instagram
 - Any payment action
 - Deleting files
 
@@ -355,10 +383,10 @@ Actions that always require approval:
 
 | Protection | Implementation |
 |-----------|---------------|
-| Credentials never in code | `credentials.json` and `token.json` gitignored |
-| No auto-send | Every email requires `Approved/` move |
+| Credentials never in code | All secrets gitignored |
+| No auto-send | Every action requires `Approved/` move |
 | Local-first | All vault data stays on your machine |
-| Audit trail | Every action logged to `Logs/activity.log` |
+| JSON audit trail | Every action logged to `Logs/YYYY-MM-DD.json` |
 | No secrets in `.md` files | Enforced by `Company_Handbook.md` |
 
 ---
@@ -368,38 +396,41 @@ Actions that always require approval:
 | Problem | Fix |
 |---------|-----|
 | `ModuleNotFoundError: playwright` | `.venv/bin/pip install playwright && .venv/bin/playwright install chromium` |
-| Gmail 403 access_denied | Add your email as test user in Google Cloud → OAuth consent screen |
+| Gmail 403 access_denied | Add your email as test user in Google Cloud OAuth consent screen |
 | Gmail API disabled | Enable Gmail API at console.developers.google.com |
 | token.json insufficient scope | Delete `token.json` and re-run `--auth` |
-| LinkedIn not logged in | Run `.venv/bin/python3 scripts/linkedin_watcher.py --login` |
-| No emails detected | Check Gmail query filter in `gmail_watcher.py` (`GMAIL_QUERY`) |
+| LinkedIn/Facebook/Instagram not logged in | Re-run the `--login` command for that script |
+| WhatsApp session expired | Re-run `--login` and scan QR again |
+| Odoo connection refused | `cd docker && docker compose up -d` |
+| Odoo auth failure | Reset password via PostgreSQL (see docker/README) |
 
 ---
 
 ## Tier Declaration
 
-**Tier: Silver ✓**
+**Tier: Gold ✓**
 
 | Requirement | Status |
 |------------|--------|
-| All Bronze requirements | ✅ Complete |
-| Two or more Watcher scripts | ✅ filesystem + Gmail + LinkedIn |
-| Auto-post on LinkedIn | ✅ `linkedin_watcher.py --post` |
-| Claude reasoning loop → Plan.md | ✅ `create-plan` skill |
-| One working MCP for external action | ✅ Gmail API send (`send_email.py`) |
-| HITL approval workflow | ✅ `APPROVAL_REQUIRED_*` → `Approved/` |
-| Basic scheduling via cron | ✅ `scripts/crontab.txt` |
-| All AI as Agent Skills | ✅ 7 skills in `.claude/skills/` |
+| All Bronze + Silver requirements | ✅ Complete |
+| Accounting integration (Odoo) | ✅ `odoo_watcher.py` via XML-RPC |
+| Facebook posting | ✅ `facebook_watcher.py` via Playwright |
+| Instagram posting | ✅ `instagram_watcher.py` via Playwright |
+| WhatsApp monitoring | ✅ `whatsapp_watcher.py` via Playwright |
+| Master orchestrator | ✅ `orchestrator.py` with Ralph Wiggum loop |
+| JSON audit trail | ✅ `audit_logger.py` — daily YYYY-MM-DD.json |
+| Docker deployment | ✅ `docker/docker-compose.yml` — Odoo 17 + PostgreSQL 15 |
+| All AI as Agent Skills | ✅ 8 skills in `.claude/skills/` |
 
 ---
 
 ## Submission
 
 - **GitHub:** [your-repo-url]
-- **Demo video:** 5–10 minutes showing Gmail detection → Claude processing → email send
-- **Tier:** Silver
+- **Demo video:** 5–10 minutes showing end-to-end Gold tier workflows
+- **Tier:** Gold
 
 ---
 
 *Built for GIAIC · Personal AI Employee Hackathon 0 · 2026*
-*Stack: Claude Code · Python · Gmail API · Playwright · Obsidian*
+*Stack: Claude Code · Python · Gmail API · Playwright · Odoo · Docker · Obsidian*

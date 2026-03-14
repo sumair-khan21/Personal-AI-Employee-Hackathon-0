@@ -40,8 +40,8 @@ with sync_playwright() as p:
 
     # ── Notifications page ────────────────────────────────────
     print("\nLoading notifications (waiting for JS)...")
-    page.goto("https://www.linkedin.com/notifications/", wait_until="networkidle", timeout=30000)
-    page.wait_for_timeout(4000)
+    page.goto("https://www.linkedin.com/notifications/", wait_until="domcontentloaded", timeout=30000)
+    page.wait_for_timeout(5000)
     page.screenshot(path=str(LOG / "debug_notifications.png"))
     print("Notifications screenshot saved.")
 
