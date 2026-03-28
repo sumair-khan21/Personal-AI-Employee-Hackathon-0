@@ -61,12 +61,12 @@ When Claude detects something requiring human decision:
 
 ## Urgency Levels
 
-| Level | Criteria | Response Time |
-|-------|----------|---------------|
-| 🔴 Critical | Payment overdue, security alert | Immediate |
-| 🟡 High | Invoice request, client message | Same day |
-| 🟢 Normal | General files, info requests | 24 hours |
-| ⚪ Low | Reference files, archives | No deadline |
+| Level       | Criteria                        | Response Time |
+| ----------- | ------------------------------- | ------------- |
+| 🔴 Critical | Payment overdue, security alert | Immediate     |
+| 🟡 High     | Invoice request, client message | Same day      |
+| 🟢 Normal   | General files, info requests    | 24 hours      |
+| ⚪ Low       | Reference files, archives       | No deadline   |
 
 ---
 
