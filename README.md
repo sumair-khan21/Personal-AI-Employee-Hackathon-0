@@ -1,17 +1,39 @@
-# Personal AI Employee — Gold Tier
+# Personal AI Employee — Platinum Tier
 
 > **Hackathon:** GIAIC Personal AI Employee Hackathon 0: Building Autonomous FTEs in 2026
-> **Tier:** Gold (Autonomous Business Assistant)
-> **Tagline:** *Your life and business on autopilot. Local-first, agent-driven, human-in-the-loop.*
+> **Tier:** Platinum (Cloud-Resident Autonomous Agent)
+> **Tagline:** *Your life and business on autopilot. Cloud-first, agent-driven, human-in-the-loop.*
 > **Author:** Sumair Khan
 
 ---
 
 ## What Is This?
 
-A **Personal AI Employee** that runs 24/7 on your local machine. It monitors Gmail, LinkedIn, Facebook, Instagram, WhatsApp, and Odoo accounting — detects important signals, creates structured action files, drafts replies and social posts, tracks invoices, and executes approved actions — all with your sign-off before anything irreversible happens.
+A **Personal AI Employee** that runs 24/7 in the cloud. It monitors Gmail, LinkedIn, Facebook, Instagram, WhatsApp, and Odoo accounting — detects important signals, creates structured action files, drafts replies and social posts, tracks invoices, and executes approved actions — all with your sign-off before anything irreversible happens.
 
-Built with **Claude Code** as the reasoning engine, **Obsidian** as the local dashboard, **Playwright** for browser automation, and **Odoo Community** for accounting. No paid APIs. Everything stays on your machine.
+Built with **Claude Code** as the reasoning engine, **Obsidian** as the local dashboard, **Playwright** for browser automation, **Odoo Community** for accounting, and **Oracle Cloud Always Free** for 24/7 hosting. No paid APIs. Everything stays under your control.
+
+---
+
+## Platinum Cloud Architecture
+
+```
+Local Machine (sumair-khan)
+  ├── WhatsApp sessions (.whatsapp-session/)
+  ├── LinkedIn/Facebook/Instagram sessions
+  ├── Sensitive keys (payment tokens — never leave local)
+  └── Obsidian vault (live dashboard)
+
+Oracle Cloud Always Free VM — ai-employee-scripts (92.4.74.176)
+  ├── orchestrator.py running 24/7 as systemd service
+  ├── gmail_watcher, linkedin_watcher, facebook_watcher
+  ├── instagram_watcher, odoo_watcher, audit_logger
+  ├── run_briefing (Mon–Fri 8 AM), filesystem_watcher
+  ├── Odoo 17 Community (Docker) + PostgreSQL 15 (Docker)
+  └── 2 GB swap (compensates for 1 GB RAM Always Free limit)
+```
+
+**Security rule:** WhatsApp send, payment actions, and browser sessions stay on your local machine. The cloud VM handles all polling and drafting — you always approve before anything is sent.
 
 ---
 
@@ -408,8 +430,28 @@ Actions that always require approval:
 
 ## Tier Declaration
 
-**Tier: Gold ✓**
+**Tier: Platinum ✓**
 
+### Bronze ✅
+| Requirement | Status |
+|------------|--------|
+| Obsidian vault with all folders | ✅ `AI_Employee_Vault/` |
+| File System Watcher | ✅ `filesystem_watcher.py` — monitors Drop_Zone/ |
+| Live dashboard | ✅ `Dashboard.md` auto-updated |
+| Company Handbook | ✅ `Company_Handbook.md` |
+| Agent Skill | ✅ `process-vault` skill |
+
+### Silver ✅
+| Requirement | Status |
+|------------|--------|
+| Gmail monitoring + OAuth2 | ✅ `gmail_watcher.py` |
+| LinkedIn watcher + poster | ✅ `linkedin_watcher.py` via Playwright |
+| CEO Briefing | ✅ `run_briefing.py` — Mon–Fri 8 AM |
+| HITL approval workflow | ✅ Needs_Action → Approved → executes |
+| Cron scheduling | ✅ `crontab.txt` |
+| 6 Agent Skills | ✅ gmail-watcher, linkedin-post, create-plan, hitl-approval, schedule-tasks, send-email |
+
+### Gold ✅
 | Requirement | Status |
 |------------|--------|
 | All Bronze + Silver requirements | ✅ Complete |
@@ -422,15 +464,63 @@ Actions that always require approval:
 | Docker deployment | ✅ `docker/docker-compose.yml` — Odoo 17 + PostgreSQL 15 |
 | All AI as Agent Skills | ✅ 8 skills in `.claude/skills/` |
 
+### Platinum ✅
+| Requirement | Status |
+|------------|--------|
+| All Gold requirements | ✅ Complete |
+| 24/7 cloud hosting | ✅ Oracle Cloud Always Free VM (`ai-employee-scripts`) |
+| Auto-restart on reboot | ✅ systemd service (`ai-employee.service`) |
+| Cloud Odoo + PostgreSQL | ✅ Docker on Oracle VM — `http://92.4.74.176:8069` |
+| Odoo API key auth | ✅ `ODOO_API_KEY` in `.env` |
+| Performance tuning | ✅ 2 GB swap for 1 GB RAM VM |
+| Comprehensive test suite | ✅ `AI_Employee_Vault/TESTING_GUIDE.md` — 25 tests |
+
+---
+
+## One-Time Cloud Setup (Platinum)
+
+### Deploy orchestrator to Oracle VM
+
+```bash
+# 1. Clone repo on VM
+ssh ubuntu@92.4.74.176 "git clone https://github.com/sumair-khan21/Personal-AI-Employee-Hackathon-0.git ~/ai-employee"
+
+# 2. Install dependencies
+ssh ubuntu@92.4.74.176 "cd ~/ai-employee && python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/playwright install chromium"
+
+# 3. Copy credentials (one-time)
+scp token.json credentials.json ubuntu@92.4.74.176:~/ai-employee/
+scp .env ubuntu@92.4.74.176:~/ai-employee/
+
+# 4. Upload browser sessions
+scp -r .linkedin-session/ ubuntu@92.4.74.176:~/ai-employee/
+scp -r .facebook-session/ ubuntu@92.4.74.176:~/ai-employee/
+scp -r .instagram-session/ ubuntu@92.4.74.176:~/ai-employee/
+
+# 5. Install systemd service
+ssh ubuntu@92.4.74.176 "sudo cp ~/ai-employee/systemd/ai-employee.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable ai-employee && sudo systemctl start ai-employee"
+
+# 6. Verify
+ssh ubuntu@92.4.74.176 "sudo systemctl status ai-employee"
+```
+
+### Pull latest code on VM
+
+```bash
+ssh ubuntu@92.4.74.176 "cd ~/ai-employee && git pull && .venv/bin/pip install -r requirements.txt"
+sudo systemctl restart ai-employee
+```
+
 ---
 
 ## Submission
 
-- **GitHub:** [your-repo-url]
-- **Demo video:** 5–10 minutes showing end-to-end Gold tier workflows
-- **Tier:** Gold
+- **GitHub:** https://github.com/sumair-khan21/Personal-AI-Employee-Hackathon-0
+- **Demo video:** 5–10 minutes showing end-to-end Platinum tier workflows
+- **Tier:** Platinum
+- **Cloud VM:** Oracle Always Free — 92.4.74.176
 
 ---
 
 *Built for GIAIC · Personal AI Employee Hackathon 0 · 2026*
-*Stack: Claude Code · Python · Gmail API · Playwright · Odoo · Docker · Obsidian*
+*Stack: Claude Code · Python · Gmail API · Playwright · Odoo · Docker · Obsidian · Oracle Cloud*
