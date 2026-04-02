@@ -196,7 +196,7 @@ async def inbox(user=Depends(require_auth)):
     for kind in ["email","approval","linkedin","whatsapp","odoo","unknown"]:
         if kind in groups:
             emoji, label = GROUP_LABELS[kind]
-            ordered.append({"label": label, "emoji": emoji, "items": groups[kind]})
+            ordered.append({"label": label, "emoji": emoji, "items": groups[kind], "count": len(groups[kind])})
 
     return HTMLResponse(_jinja.from_string(INBOX_HTML).render(groups=ordered, total=len(files)))
 
@@ -400,7 +400,7 @@ INBOX_HTML = NAV + """
 
   {% for group in groups %}
   <div>
-    <h2 class="text-base font-semibold text-gray-700 mb-2">{{ group.emoji }} {{ group.label }} ({{ group.items|length }})</h2>
+    <h2 class="text-base font-semibold text-gray-700 mb-2">{{ group.emoji }} {{ group.label }} ({{ group.count }})</h2>
     <div class="space-y-3">
     {% for item in group.items %}
     <div id="card-{{ item.filename | replace('.','_') }}" class="bg-white border rounded-xl p-4 shadow-sm">
