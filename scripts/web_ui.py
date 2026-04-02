@@ -104,11 +104,14 @@ def get_status():
     return data.get("watchers",{}), uptime
 
 def safe_move(filename, dest):
-    if any(c in filename for c in "/\\.."): raise HTTPException(400,"Invalid filename")
+    if ".." in filename or "/" in filename or "\\" in filename:
+        raise HTTPException(400, "Invalid filename")
     src = NEEDS_ACTION_DIR / filename
-    if not src.exists(): raise HTTPException(404,"File not found")
+    if not src.exists():
+        # Already moved (race condition) — treat as success
+        return
     dest.mkdir(parents=True, exist_ok=True)
-    shutil.move(str(src), str(dest/filename))
+    shutil.move(str(src), str(dest / filename))
 
 # ── Gmail ──────────────────────────────────────────────────────────────────────
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly",
