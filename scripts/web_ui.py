@@ -124,7 +124,7 @@ def get_gmail():
 
 # ── App ────────────────────────────────────────────────────────────────────────
 app  = FastAPI(title="AI Employee", docs_url=None, redoc_url=None)
-_j   = jinja2.Environment(loader=jinja2.BaseLoader(), autoescape=True)
+_j   = jinja2.Environment(loader=jinja2.BaseLoader(), autoescape=False)
 
 def page(title, content, active):
     return HTMLResponse(_j.from_string(SHELL).render(
