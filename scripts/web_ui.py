@@ -272,6 +272,7 @@ async def gmail_page(user=Depends(require_auth)):
       {f'<div class="bg-white rounded-2xl border border-amber-100 shadow-sm overflow-hidden"><div class="px-5 py-4 border-b border-amber-50 flex items-center gap-2"><span class="font-semibold text-gray-700 text-sm">⚠️ Pending Approvals</span><span class="bg-amber-100 text-amber-600 text-xs font-bold px-2 py-0.5 rounded-full">{len(approvals)}</span></div><div class="divide-y divide-gray-50">{approval_cards}</div></div>' if approvals else ''}
     </div>
     {_reply_modal()}
+    {_view_modal()}
     {_reply_script()}
     <script>
     function toggleSection(id){{
@@ -651,6 +652,23 @@ def _render_email_cards(emails):
     html = ""
     for item in emails:
         fid = item["filename"].replace(".","_")
+        # Read full body from file for the view modal
+        try:
+            full_text = (NEEDS_ACTION_DIR / item["filename"]).read_text(encoding="utf-8", errors="replace")
+            # Extract body section
+            body_match = re.search(r"## Body.*?\n\n(.*?)(?:\n## |\Z)", full_text, re.DOTALL)
+            full_body = body_match.group(1).strip() if body_match else item["preview"]
+            # Clean up invisible chars
+            full_body = re.sub(r'[\u034f\u00ad\u200b-\u200d\ufeff]', '', full_body)
+            full_body = full_body[:2000]
+        except Exception:
+            full_body = item["preview"]
+
+        # Escape for JS string (avoid breaking onclick)
+        escaped_body = full_body.replace("\\", "\\\\").replace("`", "\\`").replace("</", "<\\/")
+        escaped_from = item['from_'].replace('"', '&quot;')
+        escaped_subj = item['subject'].replace('"', '&quot;')
+
         html += f"""
         <div id="card-{fid}" class="p-4 hover:bg-gray-50 transition-colors">
           <div class="flex items-start gap-3">
@@ -664,6 +682,7 @@ def _render_email_cards(emails):
               <div class="text-sm text-gray-700 font-medium mt-0.5">{item['subject']}</div>
               <div class="text-xs text-gray-400 mt-1 line-clamp-2">{item['preview']}</div>
               <div class="flex gap-2 mt-3 flex-wrap">
+                {_action_btn("👁 View", f"openViewModal(`{escaped_from}`,`{escaped_subj}`,`{item['detected']}`,`{escaped_body}`)", "gray")}
                 {_action_btn("✉️ Reply", f"openModal('{item['filename']}','{item['gmail_id']}')", "blue") if item['gmail_id'] else ""}
                 {_action_btn("✅ Done", f"doAction('{item['filename']}','done',this)", "green")}
                 {_action_btn("❌ Reject", f"doAction('{item['filename']}','reject',this)", "red")}
@@ -721,6 +740,24 @@ def _render_generic_cards(items):
         </div>"""
     return html
 
+def _view_modal():
+    return """
+    <div id="view-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-start justify-between flex-shrink-0">
+          <div>
+            <div id="v-from" class="text-sm font-semibold text-gray-800"></div>
+            <div id="v-subject" class="text-base font-bold text-gray-900 mt-0.5"></div>
+            <div id="v-date" class="text-xs text-gray-400 mt-0.5"></div>
+          </div>
+          <button onclick="closeViewModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none ml-4 flex-shrink-0">&times;</button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1">
+          <pre id="v-body" class="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed"></pre>
+        </div>
+      </div>
+    </div>"""
+
 def _reply_modal():
     return """
     <div id="reply-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -745,6 +782,14 @@ def _reply_modal():
 
 def _reply_script():
     return """<script>
+    function openViewModal(from,subject,date,body){
+      document.getElementById('v-from').textContent='From: '+from;
+      document.getElementById('v-subject').textContent=subject;
+      document.getElementById('v-date').textContent=date;
+      document.getElementById('v-body').textContent=body;
+      document.getElementById('view-modal').classList.remove('hidden');
+    }
+    function closeViewModal(){document.getElementById('view-modal').classList.add('hidden');}
     function openModal(filename,gmailId){
       document.getElementById('m-filename').value=filename;
       document.getElementById('m-gmail-id').value=gmailId;
