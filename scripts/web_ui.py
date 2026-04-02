@@ -721,6 +721,20 @@ def _render_generic_cards(items):
     html = ""
     for item in items:
         fid = item["filename"].replace(".","_")
+        # Read full content for view modal
+        try:
+            full_text = (NEEDS_ACTION_DIR / item["filename"]).read_text(encoding="utf-8", errors="replace")
+            # Remove frontmatter
+            full_text = re.sub(r"^---\n.*?\n---\n", "", full_text, flags=re.DOTALL).strip()
+            full_text = re.sub(r'[\u034f\u00ad\u200b-\u200d\ufeff]', '', full_text)
+            full_text = full_text[:3000]
+        except Exception:
+            full_text = item["preview"]
+
+        escaped_body = full_text.replace("\\", "\\\\").replace("`", "\\`").replace("</", "<\\/")
+        escaped_from = (item['from_'] or item['contact'] or 'System').replace('"', '&quot;')
+        escaped_subj = item['preview'][:80].replace('"', '&quot;')
+
         html += f"""
         <div id="card-{fid}" class="p-4 hover:bg-gray-50 transition-colors">
           <div class="flex items-start gap-3">
@@ -732,6 +746,7 @@ def _render_generic_cards(items):
               </div>
               <div class="text-xs text-gray-400 mt-1 line-clamp-2">{item['preview']}</div>
               <div class="flex gap-2 mt-3">
+                {_action_btn("👁 View", f"openViewModal(`{escaped_from}`,`{escaped_subj}`,`{item['detected']}`,`{escaped_body}`)", "gray")}
                 {_action_btn("✅ Done", f"doAction('{item['filename']}','done',this)", "green")}
                 {_action_btn("❌ Reject", f"doAction('{item['filename']}','reject',this)", "red")}
               </div>
