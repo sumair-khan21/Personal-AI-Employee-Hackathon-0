@@ -341,6 +341,7 @@ async def linkedin_page(user=Depends(require_auth)):
       if(r.ok){{document.getElementById('li-status').innerHTML='<span class="text-emerald-600">✅ Draft saved — check inbox to approve.</span>';document.getElementById('li-body').value='';}}
     }}
     </script>"""
+    content += _view_modal() + _reply_script()
     return page("LinkedIn", content, "linkedin")
 
 
@@ -365,6 +366,7 @@ async def whatsapp_page(user=Depends(require_auth)):
         <div class="divide-y divide-gray-50">{_render_generic_cards(messages) if messages else _empty("No new WhatsApp messages")}</div>
       </div>
     </div>"""
+    content += _view_modal() + _reply_script()
     return page("WhatsApp", content, "whatsapp")
 
 
@@ -407,6 +409,7 @@ async def facebook_page(user=Depends(require_auth)):
       if(r.ok){{document.getElementById(prefix+'-status').innerHTML='<span class="text-emerald-600">✅ Draft saved — check inbox to approve.</span>';document.getElementById(prefix+'-body').value='';}}
     }}
     </script>"""
+    content += _view_modal() + _reply_script()
     return page("Facebook", content, "facebook")
 
 
@@ -452,6 +455,7 @@ async def instagram_page(user=Depends(require_auth)):
       if(r.ok){{document.getElementById(prefix+'-status').innerHTML='<span class="text-emerald-600">✅ Draft saved — check inbox to approve.</span>';document.getElementById(prefix+'-body').value='';}}
     }}
     </script>"""
+    content += _view_modal() + _reply_script()
     return page("Instagram", content, "instagram")
 
 
@@ -484,6 +488,7 @@ async def odoo_page(user=Depends(require_auth)):
         <div class="p-5">{"".join(f'<div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0"><span class="text-gray-400 text-xs font-mono">{f.name}</span><span class="ml-auto text-xs text-gray-400">{datetime.fromtimestamp(f.stat().st_mtime).strftime("%b %d")}</span></div>' for f in sorted((VAULT/"Accounting").glob("*.md"), reverse=True)[:10]) if (VAULT/"Accounting").exists() else _empty("No audit reports yet")}</div>
       </div>
     </div>"""
+    content += _view_modal() + _reply_script()
     return page("Odoo", content, "odoo")
 
 
