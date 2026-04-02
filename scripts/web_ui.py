@@ -403,7 +403,7 @@ INBOX_HTML = NAV + """
     <h2 class="text-base font-semibold text-gray-700 mb-2">{{ group.emoji }} {{ group.label }} ({{ group.items|length }})</h2>
     <div class="space-y-3">
     {% for item in group.items %}
-    <div id="card-{{ loop.index }}-{{ group.label }}" class="bg-white border rounded-xl p-4 shadow-sm">
+    <div id="card-{{ item.filename | replace('.','_') }}" class="bg-white border rounded-xl p-4 shadow-sm">
       <div class="flex items-center gap-2 mb-1">
         <span class="text-xs font-medium px-2 py-0.5 rounded-full
           {% if item.urgency == 'High' or item.urgency == 'Critical' %}bg-red-100 text-red-700
@@ -472,7 +472,9 @@ async function doAction(filename, action, btn) {
   fd.append('action',   action);
   const r = await fetch('/api/action', {method:'POST', body: fd});
   if (r.ok) {
-    btn.closest('[id^=card-]').remove();
+    const cardId = 'card-' + filename.replace(/\./g, '_');
+    const card = document.getElementById(cardId);
+    if (card) card.remove(); else location.reload();
   } else {
     btn.textContent = 'Error';
   }
