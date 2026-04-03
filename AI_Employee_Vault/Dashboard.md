@@ -1,6 +1,6 @@
 # AI Employee Dashboard
 
-> **Last Updated:** 2026-03-11 13:50:35
+> **Last Updated:** 2026-03-31 10:28:27
 > **Status:** Active
 
 ---
@@ -19,9 +19,9 @@
 
 > Auto-populated by the watcher. New files dropped to `Drop_Zone/` appear here.
 
-- **Pending items in /Needs_Action:** 1
+- **Pending items in /Needs_Action:** 18
 - **Items processed today:** 0
-- **Items in /Done:** 1
+- **Items in /Done:** 69
 
 ---
 

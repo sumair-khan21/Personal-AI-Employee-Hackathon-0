@@ -295,7 +295,7 @@ async def gmail_page(user=Depends(require_auth)):
 @app.get("/linkedin", response_class=HTMLResponse)
 async def linkedin_page(user=Depends(require_auth)):
     notifications = get_pending("linkedin")
-    approvals = [f for f in get_pending("approval") if "LinkedIn" in f["filename"]]
+    approvals = [f for f in get_pending("approval") if "linkedin" in f["filename"].lower()]
     content = f"""
     <div class="space-y-6">
       <div class="flex items-center justify-between">
@@ -625,13 +625,28 @@ async def api_send_email(to: str=Form(...), subject: str=Form(...), body: str=Fo
 @app.post("/api/draft-post")
 async def api_draft_post(content: str=Form(...), platform: str=Form(...), user=Depends(require_auth)):
     ts   = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plat = platform.capitalize()
+    plat = {"linkedin": "LinkedIn", "facebook": "Facebook", "instagram": "Instagram"}.get(platform.lower(), platform.capitalize())
     name = f"APPROVAL_REQUIRED_{plat}_{ts}.md"
     (NEEDS_ACTION_DIR/name).write_text(
         f"---\ntype: approval_required\ncategory: {platform}_post\nstatus: awaiting_approval\ncreated: {datetime.now().isoformat()}\n---\n\n"
         f"# APPROVAL REQUIRED: {plat} Post\n\n## Draft Content\n\n---\n\n{content}\n\n---\n\n## To Approve\nMove this file to `Approved/`\n\n## To Cancel\nDelete this file.\n",
         encoding="utf-8")
     return JSONResponse({"ok":True,"filename":name})
+
+@app.post("/api/approve-and-post")
+async def api_approve_and_post(filename: str=Form(...), user=Depends(require_auth)):
+    import subprocess, threading
+    safe_move(filename, APPROVED_DIR)
+    # Run --post in background (LinkedIn is slow on VM — posts within ~2min)
+    def run_post():
+        subprocess.run(
+            [str(PROJECT_ROOT / ".venv" / "bin" / "python3"),
+             str(PROJECT_ROOT / "scripts" / "linkedin_watcher.py"),
+             "--post"],
+            capture_output=False, timeout=600, cwd=str(PROJECT_ROOT)
+        )
+    threading.Thread(target=run_post, daemon=True).start()
+    return JSONResponse({"ok": True, "message": "Approved! LinkedIn post is being submitted in background (check Logs tab in ~2 min)"})
 
 # ── Card Renderers ─────────────────────────────────────────────────────────────
 
@@ -702,6 +717,24 @@ def _render_approval_cards(approvals):
     html = ""
     for item in approvals:
         fid = item["filename"].replace(".","_")
+        # Read full content for view modal
+        try:
+            full_text = (NEEDS_ACTION_DIR / item["filename"]).read_text(encoding="utf-8", errors="replace")
+            body_match = re.search(r"## Draft Content\n\n---\n\n(.*?)\n\n---", full_text, re.DOTALL)
+            full_body = body_match.group(1).strip() if body_match else re.sub(r"^---\n.*?\n---\n", "", full_text, flags=re.DOTALL).strip()
+            full_body = re.sub(r'[\u034f\u00ad\u200b-\u200d\ufeff]', '', full_body)[:3000]
+        except Exception:
+            full_body = item["preview"]
+
+        escaped_body = full_body.replace("\\", "\\\\").replace("`", "\\`").replace("</", "<\\/")
+        escaped_subj = item['subject'].replace('"', '&quot;')
+
+        # Detect platform from filename for post approval
+        fname = item["filename"]
+        is_linkedin = "linkedin" in fname.lower()
+        approve_action = f"approveAndPost('{fname}',this)" if is_linkedin else f"doAction('{fname}','approve',this)"
+        approve_label = "✅ Approve & Post" if is_linkedin else "✅ Approve"
+
         html += f"""
         <div id="card-{fid}" class="p-4 hover:bg-amber-50 transition-colors">
           <div class="flex items-start gap-3">
@@ -713,8 +746,9 @@ def _render_approval_cards(approvals):
               </div>
               <div class="text-xs text-gray-400 mt-1 line-clamp-2">{item['preview']}</div>
               <div class="flex gap-2 mt-3">
-                {_action_btn("✅ Approve", f"doAction('{item['filename']}','approve',this)", "green")}
-                {_action_btn("❌ Reject", f"doAction('{item['filename']}','reject',this)", "red")}
+                {_action_btn("👁 View", f"openViewModal(`Draft`,`{escaped_subj}`,`{item['detected']}`,`{escaped_body}`)", "gray")}
+                {_action_btn(approve_label, approve_action, "green")}
+                {_action_btn("❌ Reject", f"doAction('{fname}','reject',this)", "red")}
               </div>
             </div>
           </div>
@@ -835,6 +869,20 @@ def _reply_script():
       const r=await fetch('/api/action',{method:'POST',body:fd});
       if(r.ok){const id='card-'+filename.replace(/\./g,'_');const c=document.getElementById(id);if(c)c.remove();else location.reload();}
       else{btn.disabled=false;btn.textContent='Error';}
+    }
+    async function approveAndPost(filename,btn){
+      btn.disabled=true; btn.textContent='Submitting...';
+      const fd=new FormData(); fd.append('filename',filename);
+      const r=await fetch('/api/approve-and-post',{method:'POST',body:fd});
+      const d=await r.json();
+      if(r.ok){
+        const id='card-'+filename.replace(/\./g,'_');
+        const c=document.getElementById(id);
+        if(c){c.innerHTML='<div class="p-4 text-emerald-600 text-sm font-medium">✅ Approved! LinkedIn post is being submitted in background — check Logs tab in ~2 min.</div>';}
+      } else {
+        btn.disabled=false; btn.textContent='✅ Approve & Post';
+        alert('Error: '+(d.detail||d.error||'Unknown error'));
+      }
     }
     </script>"""
 

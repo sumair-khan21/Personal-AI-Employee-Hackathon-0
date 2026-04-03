@@ -1,5 +1,5 @@
-# Weekly Accounting Audit — 2026-03-14
-**Generated:** 2026-03-14 07:02:29
+# Weekly Accounting Audit — 2026-03-30
+**Generated:** 2026-03-30 23:44:40
 **Source:** OdooWatcher (automated)
 
 ---
@@ -18,10 +18,10 @@
 
 | Invoice | Customer | Amount | Due Date | Payment State |
 |---------|----------|--------|----------|---------------|
-| INV/2026/00001 | Acme Corporation | PKR 37,147.50 | 2026-02-25 | not_paid |
-| INV/2026/00001 | Acme Corporation | PKR 31,750.00 | 2026-02-25 | not_paid |
-| INV/2026/00003 | Acme Corporation | PKR 41,750.00 | 2026-03-12 | not_paid |
-| INV/2026/00004 | Acme Corporation | PKR 19,250.00 | 2026-03-12 | not_paid |
+| INV/2026/00004 | Acme Corporation | PKR 31,750.00 | 2026-03-14 | not_paid |
+| INV/2026/00004 | Acme Corporation | PKR 37,147.50 | 2026-03-14 | not_paid |
+| INV/2026/00002 | Acme Corporation | PKR 41,750.00 | 2026-03-29 | not_paid |
+| INV/2026/00003 | Acme Corporation | PKR 19,250.00 | 2026-03-29 | not_paid |
 
 
 ## Recommendations

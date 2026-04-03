@@ -76,11 +76,11 @@ def get_browser_context(playwright, headless: bool = True):
 
 def is_logged_in(page) -> bool:
     """Check if the current page is a logged-in LinkedIn session."""
-    try:
-        page.wait_for_selector("nav[aria-label='Primary Navigation']", timeout=8000)
-        return True
-    except Exception:
-        return False
+    url = page.url
+    return ("linkedin.com/feed" in url or
+            "linkedin.com/in/" in url or
+            "linkedin.com/notifications" in url or
+            "linkedin.com/mynetwork" in url)
 
 
 # ── Login flow ────────────────────────────────────────────────────────────────
@@ -118,7 +118,7 @@ def scrape_notifications(page) -> list[dict]:
     Returns list of notification dicts.
     """
     try:
-        page.goto(f"{LINKEDIN_URL}/notifications/", wait_until="domcontentloaded", timeout=30000)
+        page.goto(f"{LINKEDIN_URL}/notifications/", wait_until="domcontentloaded", timeout=60000)
         page.wait_for_timeout(5000)
     except Exception as e:
         logger.warning(f"Could not load notifications page: {e}")
@@ -238,14 +238,14 @@ def watch_once(processed_texts: set) -> set:
         try:
             page = ctx.pages[0] if ctx.pages else ctx.new_page()
 
+            # Navigate to feed to check if session is valid
+            page.goto(LINKEDIN_URL + "/feed/", wait_until="domcontentloaded", timeout=60000)
             if not is_logged_in(page):
-                page.goto(LINKEDIN_URL)
-                if not is_logged_in(page):
-                    logger.error(
-                        "Not logged in to LinkedIn. "
-                        "Run: python3 scripts/linkedin_watcher.py --login"
-                    )
-                    return processed_texts
+                logger.error(
+                    "Not logged in to LinkedIn. "
+                    "Run: python3 scripts/linkedin_watcher.py --login"
+                )
+                return processed_texts
 
             new_items = []
 
@@ -318,11 +318,11 @@ def post_to_linkedin(post_text: str) -> bool:
     logger.info("Opening LinkedIn to post approved content...")
 
     with sync_playwright() as p:
-        ctx = get_browser_context(p, headless=False)  # headed so you can verify
+        ctx = get_browser_context(p, headless=True)  # headed so you can verify
         try:
             page = ctx.pages[0] if ctx.pages else ctx.new_page()
-            page.goto(f"{LINKEDIN_URL}/feed/", wait_until="domcontentloaded", timeout=30000)
-            page.wait_for_timeout(3000)
+            page.goto(f"{LINKEDIN_URL}/feed/", wait_until="commit", timeout=90000)
+            page.wait_for_timeout(10000)
 
             if not is_logged_in(page):
                 logger.error("Not logged in. Run --login first.")
@@ -339,16 +339,29 @@ def post_to_linkedin(post_text: str) -> bool:
                 "button.share-box-feed-entry__trigger",
                 "[data-control-name='share.sharebox_open']",
                 "div.share-box-feed-entry__top-bar button",
+                "span:text('Start a post')",
+                "div:text('Start a post')",
+                "button:text('Start a post')",
             ]
             for sel in start_selectors:
                 try:
-                    el = page.wait_for_selector(sel, timeout=4000)
+                    el = page.wait_for_selector(sel, timeout=2000)
                     if el:
                         start_btn = el
                         logger.info(f"Found start-post button: {sel}")
                         break
                 except Exception:
                     continue
+
+            # Fallback: get_by_text
+            if not start_btn:
+                try:
+                    el = page.get_by_text("Start a post", exact=False).first
+                    if el and el.is_visible():
+                        start_btn = el
+                        logger.info("Found start-post via get_by_text")
+                except Exception:
+                    pass
 
             if not start_btn:
                 # Take a debug screenshot to inspect the page
@@ -372,7 +385,7 @@ def post_to_linkedin(post_text: str) -> bool:
             ]
             for sel in editor_selectors:
                 try:
-                    el = page.wait_for_selector(sel, timeout=4000)
+                    el = page.wait_for_selector(sel, timeout=2000)
                     if el:
                         editor = el
                         logger.info(f"Found editor: {sel}")
@@ -410,7 +423,7 @@ def post_to_linkedin(post_text: str) -> bool:
             ]
             for sel in post_selectors:
                 try:
-                    el = page.wait_for_selector(sel, timeout=4000)
+                    el = page.wait_for_selector(sel, timeout=2000)
                     if el and el.is_enabled():
                         post_btn = el
                         logger.info(f"Found post button: {sel}")

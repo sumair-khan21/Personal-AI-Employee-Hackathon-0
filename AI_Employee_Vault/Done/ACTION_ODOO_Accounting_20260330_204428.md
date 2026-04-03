@@ -1,18 +1,18 @@
 # ACTION REQUIRED — Odoo Accounting Alert
-**Generated:** 2026-03-14 08:10:24
+**Generated:** 2026-03-30 20:44:28
 **Source:** OdooWatcher
 
 ---
 
 ## Accounting Summary
 
-| Metric         | Value       |
-| -------------- | ----------- |
+| Metric | Value |
+|--------|-------|
 | Total Invoiced | $270,165.00 |
-| Total Paid     | $0.00       |
-| Total Overdue  | $129,897.50 |
-| Invoice Count  | 8           |
-| Overdue Count  | 4           |
+| Total Paid | $0.00 |
+| Total Overdue | $129,897.50 |
+| Invoice Count | 8 |
+| Overdue Count | 4 |
 
 ## Action Required
 
